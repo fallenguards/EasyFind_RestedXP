@@ -1,0 +1,26 @@
+local _, ns = ...
+if GetLocale() ~= "frFR" then return end
+local L = ns.L
+
+L["EXT_DESC"] = "Le GPS suit votre guide étape par étape ; ses guides et ses étapes apparaissent dans la recherche."
+L["NEEDS_EASYFIND"] = "nécessite un EasyFind plus récent : mettez EasyFind à jour pour l'utiliser."
+L["NO_RXP"] = "cette version de RestedXP Guides ne peut pas être lue : le suivi et sa recherche sont désactivés."
+L["SETTINGS_HINT"] = "Votre guide RestedXP, mené par le GPS d'EasyFind."
+L["FOLLOW"] = "Suivre le guide"
+L["FOLLOW_TT"] = "Le GPS mène à chaque point de passage du guide tour à tour. Un itinéraire lancé par vous passe en premier."
+L["HIDE_ARROW"] = "Masquer la flèche de RestedXP quand le GPS guide"
+L["AHEAD"] = "Points de passage suivants"
+L["AHEAD_TT"] = "Par combien des prochains points de passage du guide l'itinéraire continue."
+L["LEAD_NOW"] = "Mener à l'étape du guide"
+L["GUIDES_LABEL"] = "Guides RestedXP"
+L["STEPS_LABEL"] = "Étapes du guide"
+L["GUIDE_SUB"] = "Guide RestedXP : %s"
+L["STEP_SUB"] = "Étape %d de %s"
+L["STEP_FMT"] = "Étape %d"
+L["QUEST_STEP"] = "RestedXP : étape %d"
+L["ITEM_STEP"] = "RestedXP : l'étape %d en demande %d"
+L["GO_TO_STEP"] = "Aller à l'étape %d"
+L["HINT_STEP"] = "Aller à l'étape"
+L["HINT_GUIDE"] = "Charger le guide"
+L["KW_GUIDE"] = "guide"
+L["KW_STEP"] = "étape"

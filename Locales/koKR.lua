@@ -1,0 +1,26 @@
+local _, ns = ...
+if GetLocale() ~= "koKR" then return end
+local L = ns.L
+
+L["EXT_DESC"] = "GPS가 가이드를 단계별로 따라갑니다. 가이드와 단계가 검색에 나옵니다."
+L["NEEDS_EASYFIND"] = "더 새로운 EasyFind가 필요합니다: EasyFind를 업데이트하세요."
+L["NO_RXP"] = "이 버전의 RestedXP Guides를 읽을 수 없습니다: 따라가기와 검색이 꺼집니다."
+L["SETTINGS_HINT"] = "EasyFind의 GPS가 안내하는 RestedXP 가이드입니다."
+L["FOLLOW"] = "가이드 따라가기"
+L["FOLLOW_TT"] = "GPS가 가이드의 각 경유지로 차례로 안내합니다. 직접 시작한 경로가 먼저입니다."
+L["HIDE_ARROW"] = "GPS가 안내하는 동안 RestedXP 화살표 숨기기"
+L["AHEAD"] = "앞선 경유지"
+L["AHEAD_TT"] = "경로가 가이드의 다음 경유지 몇 개를 더 지나가는지 정합니다."
+L["LEAD_NOW"] = "가이드 단계로 안내"
+L["GUIDES_LABEL"] = "RestedXP 가이드"
+L["STEPS_LABEL"] = "가이드 단계"
+L["GUIDE_SUB"] = "RestedXP 가이드: %s"
+L["STEP_SUB"] = "%d단계, %s"
+L["STEP_FMT"] = "%d단계"
+L["QUEST_STEP"] = "RestedXP: %d단계"
+L["ITEM_STEP"] = "RestedXP: %d단계에 %d개 필요"
+L["GO_TO_STEP"] = "%d단계로 이동"
+L["HINT_STEP"] = "단계로 이동"
+L["HINT_GUIDE"] = "가이드 불러오기"
+L["KW_GUIDE"] = "가이드"
+L["KW_STEP"] = "단계"

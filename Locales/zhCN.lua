@@ -1,0 +1,26 @@
+local _, ns = ...
+if GetLocale() ~= "zhCN" then return end
+local L = ns.L
+
+L["EXT_DESC"] = "GPS 逐步跟随你的指南；指南和步骤可在搜索中找到。"
+L["NEEDS_EASYFIND"] = "需要更新的 EasyFind：请更新 EasyFind 后使用。"
+L["NO_RXP"] = "无法读取此版本的 RestedXP 指南：跟随和搜索已关闭。"
+L["SETTINGS_HINT"] = "由 EasyFind 的 GPS 带路的 RestedXP 指南。"
+L["FOLLOW"] = "跟随指南"
+L["FOLLOW_TT"] = "GPS 依次带你前往指南的每个路径点。你自己开始的路线优先。"
+L["HIDE_ARROW"] = "GPS 带路时隐藏 RestedXP 的箭头"
+L["AHEAD"] = "后续路径点"
+L["AHEAD_TT"] = "路线继续经过指南接下来的几个路径点。"
+L["LEAD_NOW"] = "前往指南的当前步骤"
+L["GUIDES_LABEL"] = "RestedXP 指南"
+L["STEPS_LABEL"] = "指南步骤"
+L["GUIDE_SUB"] = "RestedXP 指南：%s"
+L["STEP_SUB"] = "第 %d 步，%s"
+L["STEP_FMT"] = "第 %d 步"
+L["QUEST_STEP"] = "RestedXP：第 %d 步"
+L["ITEM_STEP"] = "RestedXP：第 %d 步需要 %d 个"
+L["GO_TO_STEP"] = "前往第 %d 步"
+L["HINT_STEP"] = "前往该步骤"
+L["HINT_GUIDE"] = "载入指南"
+L["KW_GUIDE"] = "指南"
+L["KW_STEP"] = "步骤"

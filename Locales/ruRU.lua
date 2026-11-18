@@ -1,0 +1,26 @@
+local _, ns = ...
+if GetLocale() ~= "ruRU" then return end
+local L = ns.L
+
+L["EXT_DESC"] = "GPS ведёт по вашему руководству шаг за шагом; его руководства и шаги находятся поиском."
+L["NEEDS_EASYFIND"] = "нужна более новая версия EasyFind: обновите EasyFind, чтобы пользоваться этим."
+L["NO_RXP"] = "эту версию RestedXP Guides прочитать не удалось: следование и поиск по нему отключены."
+L["SETTINGS_HINT"] = "Ваше руководство RestedXP, по которому ведёт GPS из EasyFind."
+L["FOLLOW"] = "Следовать руководству"
+L["FOLLOW_TT"] = "GPS ведёт к каждой точке руководства по очереди. Маршрут, проложенный вами, идёт первым."
+L["HIDE_ARROW"] = "Скрывать стрелку RestedXP, пока ведёт GPS"
+L["AHEAD"] = "Точек вперёд"
+L["AHEAD_TT"] = "Через сколько следующих точек руководства проходит маршрут."
+L["LEAD_NOW"] = "Вести к шагу руководства"
+L["GUIDES_LABEL"] = "Руководства RestedXP"
+L["STEPS_LABEL"] = "Шаги руководства"
+L["GUIDE_SUB"] = "Руководство RestedXP: %s"
+L["STEP_SUB"] = "Шаг %d из %s"
+L["STEP_FMT"] = "Шаг %d"
+L["QUEST_STEP"] = "RestedXP: шаг %d"
+L["ITEM_STEP"] = "RestedXP: шагу %d нужно %d"
+L["GO_TO_STEP"] = "К шагу %d"
+L["HINT_STEP"] = "К шагу"
+L["HINT_GUIDE"] = "Загрузить руководство"
+L["KW_GUIDE"] = "руководство"
+L["KW_STEP"] = "шаг"
