@@ -106,6 +106,15 @@ function Harness.Load(opts)
                 return true
             end
             if name == "destination" then return ctx.gps.dest end
+            if name == "clear" then
+                ctx.cleared = (ctx.cleared or 0) + 1
+                ctx.gps.dest = nil
+                ctx.FireGPS("routeCleared")
+            end
+            if name == "setTargets" then
+                ctx.targetSets = ctx.targetSets + 1
+                ctx.targets = a
+            end
         end,
         On = function(id, event, fn)
             ctx.listeners[id .. ":" .. event] = ctx.listeners[id .. ":" .. event] or {}
@@ -134,6 +143,8 @@ function Harness.Load(opts)
     function arrow:SetAlpha(a) self.alpha = a end
     function arrow:SetShown(on) self.shown = on end
     function arrow:Show() self.shown = true end
+    function arrow:Hide() self.shown = false end
+    function arrow:IsShown() return self.shown end
     ctx.arrow = arrow
     local rxp = {
         guides = { guide, { name = "Hidden", group = "x", internal = true }, { name = "11-14 Darkshore", group = "*RestedXP Alliance 1-20" } },
@@ -142,10 +153,42 @@ function Harness.Load(opts)
         GetQuestName = function(id) return ({ [64] = "The Forgotten Heirloom", [36] = "Westfall Stew" })[id] end,
     }
     function rxp:LoadGuide(g) ctx.loaded = g end
-    function rxp.SetStep(n) ctx.setStep = n end
+    -- The guide moved to step n (from its menu: the button, then n).
+    function rxp.SetStep(n, n2)
+        if type(n) == "table" then n = n2 end
+        ctx.setStep = n
+        ctx.Point(n)
+    end
+    -- Its step menu: "Go to step" first, holding SetStep itself.
+    rxp.RXPFrame = { bottomMenu = { { func = rxp.SetStep, arg1 = 1 }, { text = "Select another guide" } } }
+    function ctx.GoToStep(i)
+        local item = rxp.RXPFrame.bottomMenu[1]
+        item.func({}, i)
+    end
     if opts.broken then rxp.guides = nil end
+    -- Its targeting: the lists its Active Targets panel shows, the panel,
+    -- and the call after each rebuild of the lists.
+    ctx.targetSets = 0
+    ctx.rxpTargets = { talk = {}, mobs = {}, scan = {} }
+    local panel = { shown = true }
+    function panel:Show() self.shown = true end
+    function panel:Hide() self.shown = false end
+    function panel:SetShown(on) self.shown = on end
+    ctx.panel = panel
+    rxp.targeting = {
+        activeTargetFrame = panel,
+        GetCurrentTargets = function() return ctx.rxpTargets.talk, ctx.rxpTargets.mobs, ctx.rxpTargets.scan, {} end,
+    }
+    function rxp.targeting:UpdateMacro() end
+    function rxp.targeting:UpdateTargetFrame() panel:Show() end
+    -- Its lists rebuilt, as a step comes up.
+    function ctx.SetTargets(talk, mobs)
+        ctx.rxpTargets.talk, ctx.rxpTargets.mobs = talk or {}, mobs or {}
+        rxp.targeting:UpdateMacro()
+    end
     ctx.rxp = rxp
-    -- Point the arrow at step i's spot, as RestedXP does as steps come up.
+    -- Point the arrow at step i's spot, as RestedXP does as steps come up:
+    -- shown first, its waypoint set after; none, hidden on the last one.
     function ctx.Point(i)
         for k, step in ipairs(guide.steps) do step.active = k == i end
         rxpData.currentStep = i
@@ -153,8 +196,12 @@ function Harness.Load(opts)
         for _, el in ipairs(guide.steps[i].elements) do
             if el.zone then e = el break end
         end
-        arrow.element = e
-        arrow:SetShown(e ~= nil)
+        if e then
+            arrow:SetShown(true)
+            arrow.element = e
+        else
+            arrow:Hide()
+        end
     end
 
     local function Frame()
@@ -178,7 +225,18 @@ function Harness.Load(opts)
     end
     ctx.combat = false
     ctx.dead = false
+    -- The player on a map (ctx.player = { map, x, y } in fractions); a map
+    -- is 1000 yards a side.
+    local function Vec(x, y) return { x = x, y = y, GetXY = function(v) return v.x, v.y end } end
     local env = setmetatable({
+        CreateVector2D = Vec,
+        C_Map = {
+            GetPlayerMapPosition = function(map)
+                local p = ctx.player
+                if p and p.map == map then return Vec(p.x, p.y) end
+            end,
+            GetWorldPosFromMapPos = function(_, v) return 0, Vec(v.x * 1000, v.y * 1000) end,
+        },
         EasyFind = { API = api },
         C_AddOns = { IsAddOnLoaded = function(name) return name == "RXPGuides" and opts.rxp ~= false end },
         C_Timer = { After = function(_, fn) ctx.timers[#ctx.timers + 1] = fn end },

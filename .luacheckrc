@@ -15,7 +15,7 @@ globals = { "EasyFindRestedXPDB", "EasyFindRestedXPCharDB" }
 -- WoW API and RestedXP Guides (read-only)
 read_globals = {
     "EasyFind", "RXP", "RXPG_ARROW", "RXPCData", "LibStub",
-    "C_AddOns", "C_QuestLog", "C_Timer", "IsAddOnLoaded", "GetLocale", "CreateFrame",
+    "C_AddOns", "C_Map", "C_QuestLog", "C_Timer", "CreateVector2D", "IsAddOnLoaded", "GetLocale", "CreateFrame",
     "InCombatLockdown", "UnitIsDeadOrGhost", "hooksecurefunc",
 }
 

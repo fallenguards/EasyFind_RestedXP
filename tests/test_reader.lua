@@ -12,6 +12,64 @@ function T.aGuideLine_readsAsPlainWords()
     Eq(R.Clean(">>  "), nil, "nothing left: nil")
 end
 
+-- Undead 6-12 Tirisfal (Forever, 2026-11-18): "Talk toJohaan", and a name
+-- whose color tag holds a space.
+function T.aNameRightAfterAWord_orWithASpaceInItsTag_readsSpaced()
+    local R = Harness.Load().ns.Reader
+    Eq(R.Clean(">>|Tinterface/worldmap/chatbubble_64grey.blp:20|tTalk to|cRXP_FRIENDLY_Johaan|r"), "Talk to Johaan")
+    Eq(R.Clean(".deathskip >> Die and respawn at the |cRXP_FRIENDLY_ Spirit Healer|r"),
+        ".deathskip >> Die and respawn at the Spirit Healer")
+    Eq(R.Clean(">>Die and respawn at the |cRXP_FRIENDLY_ Spirit Healer|r"), "Die and respawn at the Spirit Healer")
+end
+
+-- Zephras Isle's Skyborne guide (Forever, 2026-11-18): a stop came out
+-- named "1" (a loop's "+1" line) and another "Kill Al'Aketh Brutes::251145".
+function T.creatureIds_andWordlessLines_areNoText()
+    local R = Harness.Load().ns.Reader
+    Eq(R.Clean(">>Kill |cRXP_ENEMY_Al'Aketh Brutes::251145|r and |cRXP_ENEMY_Al'Aketh Neophytes::251448|r."),
+        "Kill Al'Aketh Brutes and Al'Aketh Neophytes.")
+    Eq(R.Clean("+1"), nil, "a loop's count is no line")
+end
+
+-- A step the guide hides (its loop beside the shown one) gives no stop,
+-- nor a spot where the stop before stands; each stop holds the GPS.
+function T.ahead_skipsHiddenSteps_andTheSameSpot_stopsHold()
+    local ctx = Harness.Load()
+    local R = ctx.ns.Reader
+    local steps = ctx.guide.steps
+    steps[2].hidewindow = true
+    steps[3].elements[1].x, steps[3].elements[1].y = 59.95, 19.36
+    ctx.Point(1)
+    local ahead = R.Ahead(R.Target(), 2)
+    Eq(#ahead, 1, "step 2 hidden, step 3 where step 1 stands, step 4 has no spot")
+    Eq(ahead[1].step.index, 5)
+    Eq(R.Dest(steps[1].elements[1]).hold, true, "the GPS stays on it till the guide moves on")
+end
+
+-- Veena Vericloud's step (Skyborne, Forever, 2026-11-18) has no .target:
+-- its .vendor and its text name her; RestedXP's own panel left her out.
+function T.aStepWithNoTarget_namesItsVendor_andLeadsTheTargets()
+    local ctx = Harness.Load()
+    local R = ctx.ns.Reader
+    local step = ctx.guide.steps[3]
+    step.elements = {
+        { tag = "goto", zone = 1436, x = 44.72, y = 45.47, step = step,
+          text = ">>Talk to |cRXP_FRIENDLY_Veena Vericloud::254358|r." },
+        { tag = "vendor", id = 254358, text = "Vendor trash", step = step },
+    }
+    Eq(R.TargetName(step), "Veena Vericloud", "from its vendor line, named as its text spells it")
+    step.elements[2] = nil
+    Eq(R.TargetName(step), "Veena Vericloud", "from its text alone")
+    ctx.Point(3)
+    ctx.rxpTargets.talk, ctx.rxpTargets.mobs = { "Constable Aonda" }, { "Galestrider" }
+    local list = R.Targets(R.Target())
+    Eq(list[1].name, "Veena Vericloud", "the step's own creature first")
+    Eq(list[1].kind, "talk")
+    Eq(list[2].name, "Constable Aonda")
+    Eq(#list, 3)
+    Eq(R.Dest(step.elements[1]).npcName, "Veena Vericloud", "the route's Target button is hers")
+end
+
 function T.aQuestPlaceholder_takesTheQuestsName()
     local ctx = Harness.Load()
     local step = ctx.guide.steps[1]
@@ -19,18 +77,45 @@ function T.aQuestPlaceholder_takesTheQuestsName()
     Eq(ctx.ns.Reader.StepText(step), "Talk to Farmer Furlbrow", "the step's first line with words")
 end
 
-function T.theTarget_isTheArrowsWaypoint_whileItsStepIsOn()
+-- Whatever its shown arrow points at: a done spot stays on it while its
+-- step lasts, and the GPS refused step 56 of 21-22 Wailing Caverns while
+-- RestedXP's own arrow pointed there (Forever, 2026-11-18).
+function T.theTarget_isTheShownArrowsWaypoint()
     local ctx = Harness.Load()
     local R = ctx.ns.Reader
     ctx.Point(1)
-    Eq(R.Target(), ctx.guide.steps[1].elements[1])
-    ctx.guide.steps[1].elements[1].completed = true
-    Eq(R.Target(), nil, "reached")
-    ctx.guide.steps[1].elements[1].completed = nil
+    local e = ctx.guide.steps[1].elements[1]
+    Eq(R.Target(), e)
+    e.completed = true
+    Eq(R.Target(), e, "done, still on the arrow")
+    ctx.arrow:Hide()
+    Eq(R.Target(), nil, "hidden: the arrow's leftover")
+    ctx.arrow:SetShown(true)
+    ctx.arrow.element = { title = "Corpse", wx = 1, wy = 2, instance = 0 }
+    Eq(R.Target(), nil, "the corpse's: no map spot")
+end
+
+-- Its arrow switched off in its settings: the waypoint it would show.
+function T.itsArrowSwitchedOff_theWaypointItWouldShow()
+    local ctx = Harness.Load()
+    local R = ctx.ns.Reader
+    ctx.rxp.settings = { profile = { disableArrow = true, showEnabled = true } }
+    ctx.Point(1)
+    ctx.arrow:SetShown(false)
+    local e = ctx.guide.steps[1].elements[1]
+    e.arrow = true
+    Eq(R.Target(), e)
+    e.text, e.completed = "Talk to Farmer Furlbrow", true
+    Eq(R.Target(), nil, "its line done")
+    e.text, e.completed = nil, nil
     ctx.guide.steps[1].active = false
-    Eq(R.Target(), nil, "its step done: the arrow's leftover")
-    ctx.arrow.element = { zone = 1436, x = 50, y = 50 }
-    Eq(R.Target(), nil, "the corpse's: no step")
+    Eq(R.Target(), nil, "its step over")
+    ctx.guide.steps[1].active = true
+    ctx.rxp.hideArrow = true
+    Eq(R.Target(), nil, "no waypoints left")
+    ctx.rxp.hideArrow = nil
+    ctx.rxp.settings.profile.showEnabled = false
+    Eq(R.Target(), nil, "RestedXP's guide shown off")
 end
 
 function T.aWaypoint_asTheGPSTakesIt()

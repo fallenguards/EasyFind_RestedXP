@@ -1,8 +1,8 @@
 -- The GPS following the guide: each waypoint RestedXP's arrow points at,
 -- and the guide's next few after it as stops, routed for real (walks,
--- lifts, flights, boats). A route of the player's own comes first: the
--- guide waits until it ends. A route the player ended is not started
--- again for the same waypoint; the next one starts the guide's again.
+-- lifts, flights, boats). A route of the player's own holds until it ends
+-- or the arrow moves to another waypoint. The guide's route cleared by the
+-- player is led again from where they stand; arrived at, it is not.
 local _, ns = ...
 local Reader = ns.Reader
 local API = EasyFind and EasyFind.API
@@ -36,7 +36,8 @@ function Follow.Ahead()
 end
 Follow.AHEAD_MAX = AHEAD_MAX
 
-local state = { leading = false, yielded = false, faded = false, pending = false }
+-- force: send the guide's route even when it is the one sent last.
+local state = { leading = false, yielded = false, faded = false, pending = false, panelHidden = false, force = false }
 Follow._state = state
 
 local function Same(a, b)
@@ -82,36 +83,97 @@ local function Plain(d)
     return { name = d.name, mapID = d.mapID, x = d.x, y = d.y }
 end
 
--- force: lead to the guide's waypoint even when it was sent before.
+local function SameList(a, b)
+    if type(b) ~= "table" or #a ~= #b then return false end
+    for i = 1, #a do
+        if not Same(a[i], b[i]) then return false end
+    end
+    return true
+end
+
+-- The GPS made to say what the guide says now: its route sent whenever it
+-- differs from the one sent last (force: even when it does not), and gone
+-- while the guide has no waypoint.
 function Follow.Sync(force)
     if not (Follow.On() and Reader.Ready() and API.HasAction("gps", "navigate")) then return Fade(false) end
-    if state.yielded then return Fade(false) end
     if UnitIsDeadOrGhost and UnitIsDeadOrGhost("player") then return end
-    local e = Reader.Target()
-    if not e then return Fade(state.leading) end
-    local key = Reader.Key(e)
+    force = force or state.force
     local char = Char()
-    if key == char.key and not force then return Fade(state.leading) end
+    local e = Reader.Target()
+    if not e then
+        if state.leading then
+            state.leading, char.sent = false, nil
+            API.CallAction("gps", "clear")
+        end
+        return Fade(false)
+    end
+    local key = Reader.Key(e)
+    -- A route of the player's own holds while the arrow stays on the
+    -- waypoint it was on (false: none); unknown (kept from before), the
+    -- one it is on now.
+    if state.yielded then
+        if char.heldAt == nil then char.heldAt = key end
+        if key == char.heldAt then return Fade(false) end
+        state.yielded, char.heldAt = false, nil
+    end
     local list = { Reader.Dest(e) }
     if API.HasAction("gps", "navigateTrip") then
         for _, spot in ipairs(Reader.Ahead(e, Follow.Ahead())) do list[#list + 1] = Reader.Dest(spot) end
     end
+    local plain = {}
+    for i = 1, #list do plain[i] = Plain(list[i]) end
+    if not force and SameList(plain, char.sent) then return Fade(state.leading) end
     -- Kept before the call: its route can start inside it.
     local before = char.sent
-    char.sent = {}
-    for i = 1, #list do char.sent[i] = Plain(list[i]) end
+    char.sent = plain
     local ok
     if #list > 1 then
         ok = API.CallAction("gps", "navigateTrip", list, { quiet = true })
     else
         ok = API.CallAction("gps", "navigate", list[1], { quiet = true })
     end
-    if ok then char.key = key else char.sent = before end
+    if ok then state.force = false else char.sent = before end
+end
+
+local events = CreateFrame("Frame")
+
+-- The guide's creatures under the GPS arrow while it follows, a Target
+-- button each; RestedXP's own Active Targets panel hidden with its arrow
+-- meanwhile (it shows the panel only outside a fight).
+local sentTargets, panelHooked = "", false
+local function KeepPanelHidden(panel, shown)
+    if shown ~= false and state.panelHidden and not InCombatLockdown() then panel:Hide() end
+end
+
+function Follow.SyncTargets()
+    if InCombatLockdown() then return events:RegisterEvent("PLAYER_REGEN_ENABLED") end
+    local can = API.HasAction("gps", "setTargets")
+    local list = can and Follow.On() and Reader.Ready() and Reader.Targets(Reader.Target()) or {}
+    local parts = {}
+    for i, t in ipairs(list) do parts[i] = t.kind .. ":" .. t.name end
+    local key = table.concat(parts, "\n")
+    if can and key ~= sentTargets then
+        sentTargets = key
+        API.CallAction("gps", "setTargets", list)
+    end
+    local panel = Reader.TargetPanel()
+    local hide = #list > 0 and Follow.HidesArrow()
+    if not panel or hide == state.panelHidden then return end
+    state.panelHidden = hide
+    if hide then
+        if not panelHooked then
+            panelHooked = true
+            hooksecurefunc(panel, "Show", KeepPanelHidden)
+            hooksecurefunc(panel, "SetShown", KeepPanelHidden)
+        end
+        panel:Hide()
+    else
+        Reader.RedrawTargetPanel()
+    end
 end
 
 -- One sync for a burst of changes, and none in a fight (the GPS's buttons
 -- are secure): it waits for the fight's end.
-local events = CreateFrame("Frame")
 function Follow.Schedule()
     if state.pending then return end
     state.pending = true
@@ -122,22 +184,33 @@ function Follow.Schedule()
         end
         state.pending = false
         Follow.Sync()
+        Follow.SyncTargets()
     end)
 end
 
 function Follow.LeadNow()
-    state.yielded = false
+    state.yielded, Char().heldAt = false, nil
     Follow.Sync(true)
+end
+
+-- Its step menu's Go to step, the step it is on too: the guide leads again
+-- once its arrow has moved.
+function Follow.Picked()
+    state.yielded, Char().heldAt = false, nil
+    state.force = true
+    Follow.Schedule()
 end
 
 function Follow.SetOn(on)
     if on then DB().follow = nil else DB().follow = false end
     if on then Follow.LeadNow() else Fade(false) end
+    Follow.SyncTargets()
 end
 
 function Follow.SetHidesArrow(on)
     if on then DB().keepArrow = nil else DB().keepArrow = true end
     Fade(state.leading)
+    Follow.SyncTargets()
 end
 
 function Follow.SetAhead(n)
@@ -145,39 +218,46 @@ function Follow.SetAhead(n)
     if state.leading then Follow.LeadNow() end
 end
 
+-- The player's own route: it holds until the guide's arrow moves on.
 API.On("gps", "routeStarted", function(dest)
     local mine = Ours(dest)
-    state.leading = mine
-    if not mine then state.yielded = true end
+    state.leading, state.arrived = mine, false
+    if not mine then
+        state.yielded = true
+        local e = Reader.Target()
+        Char().heldAt = e and Reader.Key(e) or false
+    end
     Fade(mine)
 end)
 
--- The player's own route over: the guide leads again.
+API.On("gps", "arrived", function() state.arrived = true end)
+
+-- A route over: the player's own, the guide leads again; the guide's
+-- cleared by the player, a reset, led again from here (the Follow switch
+-- turns it off; a clear left it off, and the player thought it broken,
+-- 2026-11-18); the guide's arrived at, not again for that waypoint.
 API.On("gps", "routeCleared", function()
-    local theirs = state.yielded
-    state.leading, state.yielded = false, false
+    local theirs, arrived = state.yielded, state.arrived
+    state.leading, state.yielded, state.arrived = false, false, false
     Fade(false)
-    if theirs then
-        Char().key = nil
+    if theirs or not arrived then
+        Char().heldAt = nil
+        state.force = true
         Follow.Schedule()
     end
 end)
 
--- The arrow's waypoint changed: RestedXP shows or hides the arrow as it
--- picks one, so its shows say when to look.
-local lastElement
-local function ArrowMoved(arrow)
-    if arrow.element ~= lastElement then
-        lastElement = arrow.element
-        Follow.Schedule()
-    end
-end
-
+-- RestedXP shows or hides the arrow as it picks a waypoint, and sets the
+-- waypoint after the show: each show or hide is a look once it settles (a
+-- sync of the route already sent does nothing).
 local function Hook()
     local arrow = Reader.Arrow()
     if not arrow then return end
-    hooksecurefunc(arrow, "SetShown", ArrowMoved)
-    hooksecurefunc(arrow, "Show", ArrowMoved)
+    hooksecurefunc(arrow, "SetShown", Follow.Schedule)
+    hooksecurefunc(arrow, "Show", Follow.Schedule)
+    hooksecurefunc(arrow, "Hide", Follow.Schedule)
+    Reader.OnTargetsChanged(Follow.Schedule)
+    Reader.OnGoToStep(Follow.Picked)
     local AceEvent = LibStub and LibStub("AceEvent-3.0", true)
     if AceEvent then
         local listener = {}
@@ -195,22 +275,27 @@ events:SetScript("OnEvent", function(self, event)
         self:UnregisterEvent("PLAYER_REGEN_ENABLED")
         state.pending = false
         Follow.Sync()
+        Follow.SyncTargets()
         return
     end
     if event == "PLAYER_LOGIN" then
         self:UnregisterEvent("PLAYER_LOGIN")
         if not Reader.Ready() then return end
         Hook()
-        -- A route kept from before the reload: the guide's, or the player's.
+        -- A route kept from before the reload: the player's holds; the
+        -- guide's is sent again, planned as this version plans it (one
+        -- kept from an older one walked on past the guide's stop).
+        Char().key = nil   -- a save from before the route was compared whole
         local dest = API.CallAction("gps", "destination")
         if dest then
             state.leading = Ours(dest)
             state.yielded = not state.leading
+            if state.leading then state.force = true end
         end
         Fade(state.leading)
     elseif not (state.leading or state.yielded) then
         -- Back from the dead: the corpse run ended the guide's route.
-        Char().key = nil
+        state.force = true
     end
     Follow.Schedule()
 end)
