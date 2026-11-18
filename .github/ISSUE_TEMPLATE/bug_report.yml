@@ -1,0 +1,60 @@
+name: Bug Report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This tracker is for **EasyFind: RestedXP Extension**: its folder is `EasyFind_RestedXP`. It needs EasyFind and RestedXP Guides installed, and the GPS extension for following.
+  - type: textarea
+    id: report
+    attributes:
+      label: What happened?
+      description: What you saw and what you expected instead. Say which guide and which step it is about.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to make it happen
+      description: What you typed in EasyFind, then what you clicked, in order.
+      placeholder: |
+        1. Load the guide ...
+        2. Walk to ...
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: EasyFind, the GPS extension, RestedXP Guides and this extension, as the AddOns list shows them, and which game client (Classic Era, TBC Anniversary, Mists Classic, WoW Forever or retail).
+    validations:
+      required: true
+  - type: textarea
+    id: errors
+    attributes:
+      label: Lua errors
+      description: |
+        If the game showed an error, paste the first one here. To see errors, type `/console scriptErrors 1`, or install BugSack and BugGrabber (both are needed).
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: A screenshot helps more than anything. Drag the image into this box.
+    validations:
+      required: false
+  - type: dropdown
+    id: alone
+    attributes:
+      label: Does it still happen with only EasyFind, its GPS, RestedXP Guides and this extension turned on?
+      description: Turn everything else off in the addon list, restart the interface and try once more.
+      options:
+        - "Yes, it still happens with only these on"
+        - "No, it goes away with the rest turned off (say which one above if you found it)"
+        - "I have no other addons"
+        - "I did not try"
+    validations:
+      required: true
