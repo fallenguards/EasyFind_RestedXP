@@ -106,6 +106,11 @@ function Harness.Load(opts)
                 return true
             end
             if name == "destination" then return ctx.gps.dest end
+            -- The box under the GPS arrow: no argument reads it, a boolean sets it.
+            if name == "arrowBox" then
+                if a == nil then return ctx.box ~= false end
+                ctx.box = a
+            end
             if name == "clear" then
                 ctx.cleared = (ctx.cleared or 0) + 1
                 ctx.gps.dest = nil

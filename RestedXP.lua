@@ -153,10 +153,18 @@ local function Settings(page, kit)
     local below = kit.Title(page, L["EXT_NAME"], L["SETTINGS_HINT"])
     local follow = kit.Checkbox(page, L["FOLLOW"], Follow.On, Follow.SetOn, L["FOLLOW_TT"])
     follow:SetPoint("TOPLEFT", below, "BOTTOMLEFT", 0, -8)
-    local arrow = kit.Checkbox(page, L["HIDE_ARROW"], Follow.HidesArrow, Follow.SetHidesArrow)
+    local arrow = kit.Checkbox(page, L["HIDE_ARROW"], Follow.HidesArrow, Follow.SetHidesArrow, L["HIDE_ARROW_TT"])
     arrow:SetPoint("TOPLEFT", follow, "BOTTOMLEFT", 0, -4)
+    local last = arrow
+    -- The GPS's own setting, here too: hidden, it was missed on this page.
+    if API.HasAction("gps", "arrowBox") then
+        local box = kit.Checkbox(page, L["BOX"], function() return API.CallAction("gps", "arrowBox") ~= false end,
+            function(on) API.CallAction("gps", "arrowBox", on) end, L["BOX_TT"])
+        box:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
+        last = box
+    end
     local ahead = kit.Stepper(page, L["AHEAD"], 0, Follow.AHEAD_MAX, 1, Follow.Ahead, Follow.SetAhead, L["AHEAD_TT"])
-    ahead:SetPoint("TOPLEFT", arrow, "BOTTOMLEFT", 0, -4)
+    ahead:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
 end
 
 API.RegisterExtension({
