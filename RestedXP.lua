@@ -163,6 +163,17 @@ local function Settings(page, kit)
         box:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
         last = box
     end
+    -- What the guide's steps lay over the GPS, each where the GPS takes it.
+    for _, x in ipairs({ { key = "deathSkip", action = "deathSkip", label = "DEATH_SKIP" },
+                         { key = "grindXP", action = "setStatus", label = "GRIND_XP" },
+                         { key = "circuits", action = "setCircuit", label = "CIRCUITS" } }) do
+        if API.HasAction("gps", x.action) then
+            local row = kit.Checkbox(page, L[x.label], function() return Follow.Extra(x.key) end,
+                function(on) Follow.SetExtra(x.key, on) end, L[x.label .. "_TT"])
+            row:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
+            last = row
+        end
+    end
     local ahead = kit.Stepper(page, L["AHEAD"], 0, Follow.AHEAD_MAX, 1, Follow.Ahead, Follow.SetAhead, L["AHEAD_TT"])
     ahead:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
 end

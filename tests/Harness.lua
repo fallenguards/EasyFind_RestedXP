@@ -106,6 +106,10 @@ function Harness.Load(opts)
                 return true
             end
             if name == "destination" then return ctx.gps.dest end
+            -- What a guide lays over the GPS, as last sent.
+            if name == "deathSkip" then ctx.deathSkip = a end
+            if name == "setStatus" then ctx.status = a end
+            if name == "setCircuit" then ctx.circuit = a end
             -- The box under the GPS arrow: no argument reads it, a boolean sets it.
             if name == "arrowBox" then
                 if a == nil then return ctx.box ~= false end
@@ -250,6 +254,10 @@ function Harness.Load(opts)
         GetLocale = function() return opts.locale or "enUS" end,
         InCombatLockdown = function() return ctx.combat end,
         UnitIsDeadOrGhost = function() return ctx.dead end,
+        -- The player's level and XP (ctx.level, ctx.xp, ctx.xpMax).
+        UnitLevel = function() return ctx.level or 10 end,
+        UnitXP = function() return ctx.xp or 0 end,
+        UnitXPMax = function() return ctx.xpMax or 1000 end,
         -- A post-hook on the table's own method, as the game's does.
         hooksecurefunc = function(t, key, hook)
             local orig = t[key]

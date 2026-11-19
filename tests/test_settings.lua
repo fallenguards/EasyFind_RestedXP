@@ -9,7 +9,7 @@ local T = {}
 local LOCALES = { "enUS", "deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW" }
 -- The keys a switch's label reads, and the room its row has: about 28
 -- Latin letters (a cut showed at 28), a CJK or Hangul character two.
-local SWITCHES = { "FOLLOW", "HIDE_ARROW", "BOX" }
+local SWITCHES = { "FOLLOW", "HIDE_ARROW", "BOX", "DEATH_SKIP", "GRIND_XP", "CIRCUITS" }
 local ROOM = 28
 
 -- The page built with a stand-in kit: its rows in order.

@@ -172,6 +172,68 @@ function Follow.SyncTargets()
     end
 end
 
+-- The extras a guide's steps lay over the GPS, each on unless its switch
+-- is off: a death skip's Spirit Healer, a grind's XP under the step, a
+-- loop step's circuit on the maps (the last two while the guide leads).
+function Follow.Extra(key) return DB()[key] ~= false end
+
+function Follow.SetExtra(key, on)
+    if on then DB()[key] = nil else DB()[key] = false end
+    Follow.SyncExtras()
+end
+
+-- The grind's XP for the box under the arrow: toward the goal at its
+-- level, else the level it is reached at; nil once there or unknown.
+function Follow.GrindText()
+    local level, xp = Reader.GrindGoal()
+    if not level then return nil end
+    local cur, max, now = UnitXP("player"), UnitXPMax("player"), UnitLevel("player")
+    if issecretvalue and (issecretvalue(cur) or issecretvalue(max)) then return nil end
+    if not (cur and max and now and max > 0) then return nil end
+    -- The level the goal sits on: the one before it for 0 and below.
+    local at = xp <= 0 and level - 1 or level
+    if now < at then return ns.L["GRIND_LEVEL_FMT"]:format(now, level) end
+    if now > at then return nil end
+    local goal = xp == 0 and max or xp < 0 and max + xp or xp >= 1 and xp or math.floor(max * xp)
+    if cur >= goal or goal <= 0 then return nil end
+    local Big = BreakUpLargeNumbers or tostring
+    return ns.L["GRIND_XP_FMT"]:format(Big(cur), Big(goal), math.floor(cur / goal * 100))
+end
+
+local sent = { circuit = "" }
+local function CircuitKey(list)
+    local parts = {}
+    for i, s in ipairs(list) do parts[i] = string.format("%d:%.4f:%.4f", s.mapID, s.x, s.y) end
+    return table.concat(parts, "|")
+end
+
+function Follow.SyncExtras()
+    local on = Follow.On() and Reader.Ready()
+    if API.HasAction("gps", "deathSkip") then
+        local skip = on and Follow.Extra("deathSkip") and Reader.DeathSkip() or false
+        if skip ~= sent.deathSkip then
+            sent.deathSkip = skip
+            API.CallAction("gps", "deathSkip", skip)
+        end
+    end
+    local leading = on and state.leading
+    if API.HasAction("gps", "setStatus") then
+        local text = leading and Follow.Extra("grindXP") and Follow.GrindText() or nil
+        if text ~= sent.status then
+            sent.status = text
+            API.CallAction("gps", "setStatus", text)
+        end
+    end
+    if API.HasAction("gps", "setCircuit") then
+        local list = leading and Follow.Extra("circuits") and Reader.Circuit(Reader.Target()) or nil
+        local key = list and CircuitKey(list) or ""
+        if key ~= sent.circuit then
+            sent.circuit = key
+            API.CallAction("gps", "setCircuit", list)
+        end
+    end
+end
+
 -- One sync for a burst of changes, and none in a fight (the GPS's buttons
 -- are secure): it waits for the fight's end.
 function Follow.Schedule()
@@ -185,6 +247,7 @@ function Follow.Schedule()
         state.pending = false
         Follow.Sync()
         Follow.SyncTargets()
+        Follow.SyncExtras()
     end)
 end
 
@@ -205,6 +268,7 @@ function Follow.SetOn(on)
     if on then DB().follow = nil else DB().follow = false end
     if on then Follow.LeadNow() else Fade(false) end
     Follow.SyncTargets()
+    Follow.SyncExtras()
 end
 
 function Follow.SetHidesArrow(on)
@@ -228,6 +292,7 @@ API.On("gps", "routeStarted", function(dest)
         Char().heldAt = e and Reader.Key(e) or false
     end
     Fade(mine)
+    Follow.SyncExtras()
 end)
 
 API.On("gps", "arrived", function() state.arrived = true end)
@@ -240,6 +305,7 @@ API.On("gps", "routeCleared", function()
     local theirs, arrived = state.yielded, state.arrived
     state.leading, state.yielded, state.arrived = false, false, false
     Fade(false)
+    Follow.SyncExtras()
     if theirs or not arrived then
         Char().heldAt = nil
         state.force = true
@@ -270,12 +336,17 @@ end
 events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("PLAYER_UNGHOST")
 events:RegisterEvent("PLAYER_ALIVE")
+-- A grind's XP under the step, as it grows.
+events:RegisterEvent("PLAYER_XP_UPDATE")
+events:RegisterEvent("PLAYER_LEVEL_UP")
 events:SetScript("OnEvent", function(self, event)
+    if event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" then return Follow.SyncExtras() end
     if event == "PLAYER_REGEN_ENABLED" then
         self:UnregisterEvent("PLAYER_REGEN_ENABLED")
         state.pending = false
         Follow.Sync()
         Follow.SyncTargets()
+        Follow.SyncExtras()
         return
     end
     if event == "PLAYER_LOGIN" then

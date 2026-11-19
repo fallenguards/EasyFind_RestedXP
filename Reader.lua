@@ -195,6 +195,32 @@ function Reader.Items(step, out)
     return out
 end
 
+-- The first element of a step the guide is on that pass(e) takes, or nil.
+local function OnSteps(pass)
+    local g = Reader.Guide()
+    for _, step in ipairs(g and g.steps or NONE) do
+        if type(step) == "table" and step.active then
+            for _, e in ipairs(Elements(step)) do
+                if pass(e) then return e end
+            end
+        end
+    end
+end
+
+local function IsDeathSkip(e) return e.tag == "deathskip" end
+local function IsGrind(e) return e.tag == "xp" and not e.textOnly and not e.reverseLogic and tonumber(e.level) ~= nil end
+
+-- Whether a step the guide is on says to die and respawn (.deathskip).
+function Reader.DeathSkip() return OnSteps(IsDeathSkip) ~= nil end
+
+-- A grind goal of a step the guide is on (.xp, its conditions left out):
+-- the level, and the XP as the guide writes it (0 the level itself, 1 or
+-- more into it, under 1 a share of its bar, below 0 short of it); or nil.
+function Reader.GrindGoal()
+    local e = OnSteps(IsGrind)
+    if e then return tonumber(e.level), tonumber(e.xp) or 0 end
+end
+
 -- Whether RestedXP would put e on its arrow, by its own rule: a spot made
 -- for the arrow, or an active step's not hidden under a done line.
 local function ArrowTakes(e)
@@ -325,6 +351,26 @@ end
 
 local function SameSpot(a, b)
     return a.zone == b.zone and math.abs(a.x - b.x) < 0.05 and math.abs(a.y - b.y) < 0.05
+end
+
+-- A loop step's circuit (#loop): its spots in order, { mapID, x, y } in
+-- map fractions, from the waypoint's step or the step the guide is on;
+-- nil with fewer than three.
+function Reader.Circuit(e)
+    local step = type(e) == "table" and type(e.step) == "table" and e.step.loop and e.step or nil
+    if not step then
+        local now = Reader.Step()
+        step = now and now.loop and now or nil
+    end
+    if not step then return nil end
+    local out, last = {}, nil
+    for _, el in ipairs(Elements(step)) do
+        if Spot(el) and not (last and SameSpot(el, last)) then
+            out[#out + 1] = { mapID = el.zone, x = el.x / 100, y = el.y / 100 }
+            last = el
+        end
+    end
+    return #out >= 3 and out or nil
 end
 
 -- The guide's next waypoints after e's step, the first spot of each step

@@ -17,6 +17,7 @@ read_globals = {
     "EasyFind", "RXP", "RXPG_ARROW", "RXPCData", "LibStub",
     "C_AddOns", "C_Map", "C_QuestLog", "C_Timer", "CreateVector2D", "IsAddOnLoaded", "GetLocale", "CreateFrame",
     "InCombatLockdown", "UnitIsDeadOrGhost", "hooksecurefunc",
+    "UnitXP", "UnitXPMax", "UnitLevel", "BreakUpLargeNumbers", "issecretvalue",
 }
 
 -- WoW callbacks have fixed signatures; unused args are normal
