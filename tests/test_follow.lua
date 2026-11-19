@@ -39,11 +39,40 @@ function T.theHearthstone_onlyWhereTheGuideSaysToHearth()
     ctx.Message("RXPGuidesV2_GuideStepsChanged")
     ctx.Settle()
     Eq(#ctx.navigated, sent + 1, "the same spots sent again")
-    Eq(Last(ctx).opts.avoid, nil, "the guide says to hearth: the GPS may")
+    Eq(Last(ctx).opts.avoid.hearth, nil, "the guide says to hearth: the GPS may")
     hs.completed = true
     ctx.Message("RXPGuidesV2_GuideStepsChanged")
     ctx.Settle()
     True(Last(ctx).opts.avoid and Last(ctx).opts.avoid.hearth, "hearthed: left out again")
+end
+
+-- Flight paths the same way (2026-11-19): between its flights the guide
+-- walks, for what it has done on the way, so a flight path only while a
+-- step it is on says .fly, until it lands.
+function T.flightPaths_onlyWhereTheGuideSaysToFly()
+    local ctx = Harness.Load()
+    ctx.Point(1)
+    ctx.Login()
+    True(Last(ctx).opts.avoid and Last(ctx).opts.avoid.taxi, "left out")
+    local sent = #ctx.navigated
+    local step = ctx.guide.steps[1]
+    local fly = { tag = "fly", text = "Fly to The Crossroads", step = step }
+    step.elements[#step.elements + 1] = fly
+    ctx.Message("RXPGuidesV2_GuideStepsChanged")
+    ctx.Settle()
+    Eq(#ctx.navigated, sent + 1, "the same spots sent again")
+    local avoid = Last(ctx).opts.avoid
+    Eq(avoid.taxi, nil, "the guide says to fly: the GPS may")
+    True(avoid.hearth, "the Hearthstone still left out")
+    local hs = { tag = "hs", text = "Hearth to Brill", step = step }
+    step.elements[#step.elements + 1] = hs
+    ctx.Message("RXPGuidesV2_GuideStepsChanged")
+    ctx.Settle()
+    Eq(Last(ctx).opts.avoid, nil, "both said: nothing left out")
+    fly.completed, hs.completed = true, true
+    ctx.Message("RXPGuidesV2_GuideStepsChanged")
+    ctx.Settle()
+    True(Last(ctx).opts.avoid.taxi and Last(ctx).opts.avoid.hearth, "landed: both left out again")
 end
 
 function T.eachNewWaypoint_isLedTo_once()
