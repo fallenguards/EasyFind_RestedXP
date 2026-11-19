@@ -23,6 +23,29 @@ function T.atLogin_theGPSLeadsToTheWaypoint_andTheNextTwo()
     Eq(ctx.arrow.alpha, 0, "its own drawing does not bring it back")
 end
 
+-- The Hearthstone only where the guide says to hearth (2026-11-19: the
+-- GPS hearthed on "Travel back to Brill", whose cooldown the guide plans
+-- around): every route leaves it out until a step the guide is on says
+-- .hs, and that change alone sends the same spots again.
+function T.theHearthstone_onlyWhereTheGuideSaysToHearth()
+    local ctx = Harness.Load()
+    ctx.Point(1)
+    ctx.Login()
+    True(Last(ctx).opts.avoid and Last(ctx).opts.avoid.hearth, "left out")
+    local sent = #ctx.navigated
+    local step = ctx.guide.steps[1]
+    local hs = { tag = "hs", text = "Hearth to Brill", step = step }
+    step.elements[#step.elements + 1] = hs
+    ctx.Message("RXPGuidesV2_GuideStepsChanged")
+    ctx.Settle()
+    Eq(#ctx.navigated, sent + 1, "the same spots sent again")
+    Eq(Last(ctx).opts.avoid, nil, "the guide says to hearth: the GPS may")
+    hs.completed = true
+    ctx.Message("RXPGuidesV2_GuideStepsChanged")
+    ctx.Settle()
+    True(Last(ctx).opts.avoid and Last(ctx).opts.avoid.hearth, "hearthed: left out again")
+end
+
 function T.eachNewWaypoint_isLedTo_once()
     local ctx = Harness.Load()
     ctx.Point(1)

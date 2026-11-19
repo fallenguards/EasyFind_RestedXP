@@ -209,9 +209,16 @@ end
 
 local function IsDeathSkip(e) return e.tag == "deathskip" end
 local function IsGrind(e) return e.tag == "xp" and not e.textOnly and not e.reverseLogic and tonumber(e.level) ~= nil end
+local function IsHearth(e)
+    return (e.tag == "hs" or e.tag == "hsbatching") and not e.completed and not (e.step and e.step.completed)
+end
 
 -- Whether a step the guide is on says to die and respawn (.deathskip).
 function Reader.DeathSkip() return OnSteps(IsDeathSkip) ~= nil end
+
+-- Whether a step the guide is on says to hearth (.hs): only then may the
+-- GPS use the Hearthstone, whose cooldown the guide plans around.
+function Reader.Hearth() return OnSteps(IsHearth) ~= nil end
 
 -- A grind goal of a step the guide is on (.xp, its conditions left out):
 -- the level, and the XP as the guide writes it (0 the level itself, 1 or

@@ -83,8 +83,10 @@ local function Plain(d)
     return { name = d.name, mapID = d.mapID, x = d.x, y = d.y }
 end
 
+local LEAVE_HEARTH = { hearth = true }
+
 local function SameList(a, b)
-    if type(b) ~= "table" or #a ~= #b then return false end
+    if type(b) ~= "table" or #a ~= #b or a.hearth ~= b.hearth then return false end
     for i = 1, #a do
         if not Same(a[i], b[i]) then return false end
     end
@@ -120,17 +122,21 @@ function Follow.Sync(force)
     if API.HasAction("gps", "navigateTrip") then
         for _, spot in ipairs(Reader.Ahead(e, Follow.Ahead())) do list[#list + 1] = Reader.Dest(spot) end
     end
-    local plain = {}
+    -- The Hearthstone only where the guide says to hearth: it plans
+    -- around the cooldown (2026-11-19: hearthed on "Travel back to Brill").
+    local hearth = Reader.Hearth() or nil
+    local plain = { hearth = hearth }
     for i = 1, #list do plain[i] = Plain(list[i]) end
     if not force and SameList(plain, char.sent) then return Fade(state.leading) end
     -- Kept before the call: its route can start inside it.
     local before = char.sent
     char.sent = plain
+    local opts = { quiet = true, avoid = not hearth and LEAVE_HEARTH or nil }
     local ok
     if #list > 1 then
-        ok = API.CallAction("gps", "navigateTrip", list, { quiet = true })
+        ok = API.CallAction("gps", "navigateTrip", list, opts)
     else
-        ok = API.CallAction("gps", "navigate", list[1], { quiet = true })
+        ok = API.CallAction("gps", "navigate", list[1], opts)
     end
     if ok then state.force = false else char.sent = before end
 end
