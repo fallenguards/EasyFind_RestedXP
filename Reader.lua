@@ -93,6 +93,7 @@ Reader.Elements = Elements
 local function Spot(e)
     return type(e) == "table" and type(e.zone) == "number" and type(e.x) == "number" and type(e.y) == "number"
 end
+Reader.IsSpot = Spot
 Reader.Spot = Spot
 
 function Reader.FirstSpot(step)
@@ -213,8 +214,20 @@ local function Open(e) return not e.completed and not (e.step and e.step.complet
 local function IsHearth(e) return (e.tag == "hs" or e.tag == "hsbatching") and Open(e) end
 local function IsFly(e) return e.tag == "fly" and Open(e) end
 
--- Whether a step the guide is on says to die and respawn (.deathskip).
-function Reader.DeathSkip() return OnSteps(IsDeathSkip) ~= nil end
+-- Whether a step the guide is on says to die and respawn (.deathskip):
+-- where its Spirit Healer stands, { mapID, x, y, name }, when the step
+-- says so (the GPS knows no healer on Zephras Isle and led its ghosts to
+-- their corpses, 2026-11-21); true with no spot on it; else false.
+function Reader.DeathSkip()
+    local e = OnSteps(IsDeathSkip)
+    if not e then return false end
+    for _, el in ipairs(Elements(e.step)) do
+        if el.tag == "goto" and Reader.IsSpot(el) then
+            return { mapID = el.zone, x = el.x / 100, y = el.y / 100, name = Reader.TargetName(e.step) }
+        end
+    end
+    return true
+end
 
 -- Whether a step the guide is on says to hearth (.hs): only then may the
 -- GPS use the Hearthstone, whose cooldown the guide plans around.

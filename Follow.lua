@@ -262,9 +262,11 @@ end
 function Follow.SyncExtras()
     local on = Follow.On() and Reader.Ready()
     if API.HasAction("gps", "deathSkip") then
+        -- true, or the Spirit Healer's spot as the guide's step gives it.
         local skip = on and Follow.Extra("deathSkip") and Reader.DeathSkip() or false
-        if skip ~= sent.deathSkip then
-            sent.deathSkip = skip
+        local key = type(skip) == "table" and string.format("%d:%.4f:%.4f", skip.mapID, skip.x, skip.y) or skip
+        if key ~= sent.deathSkip then
+            sent.deathSkip = key
             API.CallAction("gps", "deathSkip", skip)
         end
     end

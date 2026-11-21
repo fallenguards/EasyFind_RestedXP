@@ -21,14 +21,25 @@ function T.aDeathSkip_onAStepTheGuideIsOn_isTheGPSs()
     Add(Step(ctx, 1), { tag = "deathskip", text = "Die and respawn at the |cRXP_FRIENDLY_ Spirit Healer|r" })
     ctx.Message("RXPGuidesV2_GuideStepsChanged")
     ctx.Settle()
-    Eq(ctx.deathSkip, true, "the guide says to die: set")
+    -- The step's own spot goes with it: the GPS knows no Spirit Healer on
+    -- Zephras Isle and led its ghosts to their corpses (2026-11-21).
+    Eq(type(ctx.deathSkip), "table", "the guide says to die: set, with where its healer stands")
+    Eq(ctx.deathSkip.mapID, Step(ctx, 1).elements[1].zone)
+    True(math.abs(ctx.deathSkip.x - Step(ctx, 1).elements[1].x / 100) < 1e-9, "the step's own spot")
     ctx.ns.Follow.SetExtra("deathSkip", false)
     Eq(ctx.deathSkip, false, "its switch off: not")
     ctx.ns.Follow.SetExtra("deathSkip", true)
-    Eq(ctx.deathSkip, true)
+    Eq(type(ctx.deathSkip), "table")
     ctx.Point(2)
     ctx.Settle()
     Eq(ctx.deathSkip, false, "the step gone: not")
+    -- A death skip step with no spot of its own: set all the same.
+    Add(Step(ctx, 4), { tag = "deathskip", text = "Die and respawn" })
+    ctx.Point(4)
+    for k, step in ipairs(ctx.guide.steps) do step.active = k == 4 end
+    ctx.Message("RXPGuidesV2_GuideStepsChanged")
+    ctx.Settle()
+    Eq(ctx.deathSkip, true, "no spot on the step: the GPS looks for the healer itself")
 end
 
 -- "Grind to 895+/1400xp" (.xp 3+895): at level 3, the XP toward 895.
