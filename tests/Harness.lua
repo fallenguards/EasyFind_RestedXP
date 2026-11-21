@@ -120,6 +120,10 @@ function Harness.Load(opts)
                 ctx.gps.dest = nil
                 ctx.FireGPS("routeCleared")
             end
+            if name == "setUses" then
+                ctx.useSets = (ctx.useSets or 0) + 1
+                ctx.uses = a
+            end
             if name == "setTargets" then
                 ctx.targetSets = ctx.targetSets + 1
                 ctx.targets = a
@@ -195,6 +199,20 @@ function Harness.Load(opts)
         ctx.rxpTargets.talk, ctx.rxpTargets.mobs = talk or {}, mobs or {}
         rxp.targeting:UpdateMacro()
     end
+    -- Its Active Items: what its steps say to use, the panel, and its
+    -- redraw, which every change of them ends in.
+    rxp.activeItems, rxp.activeSpells, rxp.activeMacros = {}, {}, {}
+    local itemPanel = { shown = false }
+    function itemPanel:Show() self.shown = true end
+    function itemPanel:Hide() self.shown = false end
+    function itemPanel:SetShown(on) self.shown = on end
+    ctx.itemPanel = itemPanel
+    rxp.activeItemFrame = itemPanel
+    function rxp.UpdateItemFrame()
+        itemPanel:SetShown(next(rxp.activeItems) ~= nil or next(rxp.activeSpells) ~= nil or next(rxp.activeMacros) ~= nil)
+    end
+    -- The character's bags and spells, by id.
+    ctx.bags, ctx.spells = {}, {}
     ctx.rxp = rxp
     -- Point the arrow at step i's spot, as RestedXP does as steps come up:
     -- shown first, its waypoint set after; none, hidden on the last one.
@@ -277,6 +295,14 @@ function Harness.Load(opts)
         print = function(...) ctx.printed[#ctx.printed + 1] = table.concat({ ... }, " ") end,
     }, { __index = _G })
     env._G = env
+    env.C_Item = {
+        GetItemCount = function(id) return ctx.bags[id] or 0 end,
+        IsEquippedItem = function() return false end,
+        GetItemNameByID = function(id) return "Item " .. id end,
+        GetItemIconByID = function(id) return 100000 + id end,
+    }
+    env.C_SpellBook = { IsSpellKnown = function(id) return ctx.spells[id] == true end }
+    env.C_Spell = { GetSpellInfo = function(id) return { name = "Spell " .. id, iconID = 200000 + id } end }
     ctx.env = env
     local _, files = Harness.Toc()
     local ns = {}

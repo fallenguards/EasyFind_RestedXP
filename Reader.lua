@@ -334,6 +334,90 @@ function Reader.RedrawTargetPanel()
     if t and type(t.UpdateTargetFrame) == "function" then t:UpdateTargetFrame() end
 end
 
+-- What its steps say to use now, as its Active Items panel lists them:
+-- { kind = "spell" | "macro" | "item", id, name, icon, macro } each, in
+-- that order. A spell once known and an item while carried or worn, as
+-- its panel has them, or either the guide keeps shown ("p").
+local USE_ORDER = { spell = 1, macro = 2, item = 3 }
+local MACRO_ICON = 134400
+local function UseLess(a, b)
+    if a.kind ~= b.kind then return USE_ORDER[a.kind] < USE_ORDER[b.kind] end
+    if a.id and b.id and a.id ~= b.id then return a.id < b.id end
+    return tostring(a.name) < tostring(b.name)
+end
+
+local function SpellKnown(id)
+    if C_SpellBook and C_SpellBook.IsSpellKnown then return C_SpellBook.IsSpellKnown(id) end
+    local known = IsPlayerSpell or IsSpellKnown
+    return known ~= nil and known(id) or false
+end
+
+local function SpellNameIcon(id)
+    if C_Spell and C_Spell.GetSpellInfo then
+        local info = C_Spell.GetSpellInfo(id)
+        return info and info.name, info and info.iconID
+    end
+    if GetSpellInfo then
+        local name, _, icon = GetSpellInfo(id)
+        return name, icon
+    end
+end
+
+local function Carried(id)
+    local count = C_Item and C_Item.GetItemCount or GetItemCount
+    if count and (count(id) or 0) > 0 then return true end
+    local worn = C_Item and C_Item.IsEquippedItem or IsEquippedItem
+    if worn and worn(id) then return true end
+    return PlayerHasToy ~= nil and PlayerHasToy(id) or false
+end
+
+function Reader.Uses()
+    local rxp = RXP()
+    local out = {}
+    if not rxp then return out end
+    for id, arg in pairs(type(rxp.activeSpells) == "table" and rxp.activeSpells or NONE) do
+        if type(id) == "number" and (arg == "p" or SpellKnown(id)) then
+            local name, icon = SpellNameIcon(id)
+            if name then out[#out + 1] = { kind = "spell", id = id, name = name, icon = icon } end
+        end
+    end
+    -- A macro is kept under "icon:name", its text the value.
+    for key, text in pairs(type(rxp.activeMacros) == "table" and rxp.activeMacros or NONE) do
+        local icon, name
+        if type(key) == "string" then icon, name = key:match("^(%d+):(.+)$") end
+        if name and type(text) == "string" and text ~= "" then
+            icon = tonumber(icon)
+            out[#out + 1] = { kind = "macro", name = name, icon = icon and icon ~= 0 and icon or MACRO_ICON, macro = text }
+        end
+    end
+    for id, arg in pairs(type(rxp.activeItems) == "table" and rxp.activeItems or NONE) do
+        if type(id) == "number" and (arg == "p" or Carried(id)) then
+            out[#out + 1] = { kind = "item", id = id, name = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(id) or nil,
+                              icon = C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(id) or nil }
+        end
+    end
+    table.sort(out, UseLess)
+    return out
+end
+
+-- Its Active Items panel, its own redraw of it (outside a fight), and a
+-- call after each of its redraws: bags, spells and steps all end in one.
+function Reader.UsePanel()
+    local rxp = RXP()
+    local f = rxp and rxp.activeItemFrame
+    return type(f) == "table" and type(f.Hide) == "function" and f or nil
+end
+
+function Reader.RedrawUsePanel()
+    local rxp = RXP()
+    if rxp and type(rxp.UpdateItemFrame) == "function" then rxp.UpdateItemFrame() end
+end
+
+function Reader.OnUsesChanged(fn)
+    local rxp = RXP()
+    if rxp and type(rxp.UpdateItemFrame) == "function" then hooksecurefunc(rxp, "UpdateItemFrame", fn) end
+end
+
 -- Called after it rebuilds its target lists.
 function Reader.OnTargetsChanged(fn)
     local rxp = RXP()

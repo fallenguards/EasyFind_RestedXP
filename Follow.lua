@@ -41,7 +41,7 @@ Follow.AHEAD_MAX = AHEAD_MAX
 -- force: send the guide's route even when it is the one sent last.
 -- routed: the GPS has a route up, the guide's or the player's own.
 local state = { leading = false, yielded = false, routed = false, faded = false, pending = false, panelHidden = false,
-                force = false }
+                itemsHidden = false, force = false }
 Follow._state = state
 
 local function Same(a, b)
@@ -187,6 +187,43 @@ function Follow.SyncTargets()
     end
 end
 
+-- What the guide's steps say to use (an item, a spell, a macro) under the
+-- GPS arrow while it follows, a button each; RestedXP's own Active Items
+-- panel hidden with its arrow meanwhile.
+local sentUses, itemsHooked = "", false
+local function KeepItemsHidden(panel, shown)
+    if shown ~= false and state.itemsHidden and not InCombatLockdown() then panel:Hide() end
+end
+
+function Follow.SyncUses()
+    if InCombatLockdown() then return events:RegisterEvent("PLAYER_REGEN_ENABLED") end
+    local can = API.HasAction("gps", "setUses")
+    local list = can and Follow.On() and Reader.Ready() and Reader.Uses() or {}
+    local parts = {}
+    for i, u in ipairs(list) do
+        parts[i] = u.kind .. ":" .. tostring(u.id) .. ":" .. tostring(u.name) .. ":" .. (u.macro or "")
+    end
+    local key = table.concat(parts, "\n")
+    if can and key ~= sentUses then
+        sentUses = key
+        API.CallAction("gps", "setUses", list)
+    end
+    local panel = Reader.UsePanel()
+    local hide = #list > 0 and Follow.HidesArrow()
+    if not panel or hide == state.itemsHidden then return end
+    state.itemsHidden = hide
+    if hide then
+        if not itemsHooked then
+            itemsHooked = true
+            hooksecurefunc(panel, "Show", KeepItemsHidden)
+            hooksecurefunc(panel, "SetShown", KeepItemsHidden)
+        end
+        panel:Hide()
+    else
+        Reader.RedrawUsePanel()
+    end
+end
+
 -- The extras a guide's steps lay over the GPS, each on unless its switch
 -- is off: a death skip's Spirit Healer, a grind's XP under the step, a
 -- loop step's circuit on the maps (the last two while the guide leads).
@@ -259,6 +296,7 @@ function Follow.Schedule()
         state.pending = false
         Follow.Sync()
         Follow.SyncTargets()
+        Follow.SyncUses()
         Follow.SyncExtras()
     end)
 end
@@ -280,6 +318,7 @@ function Follow.SetOn(on)
     if on then DB().follow = nil else DB().follow = false end
     if on then Follow.LeadNow() else Fade(false) end
     Follow.SyncTargets()
+    Follow.SyncUses()
     Follow.SyncExtras()
 end
 
@@ -287,6 +326,7 @@ function Follow.SetHidesArrow(on)
     if on then DB().keepArrow = nil else DB().keepArrow = true end
     Fade(ArrowOut())
     Follow.SyncTargets()
+    Follow.SyncUses()
 end
 
 function Follow.SetOwnArrow(on)
@@ -340,6 +380,7 @@ local function Hook()
     hooksecurefunc(arrow, "Show", Follow.Schedule)
     hooksecurefunc(arrow, "Hide", Follow.Schedule)
     Reader.OnTargetsChanged(Follow.Schedule)
+    Reader.OnUsesChanged(Follow.SyncUses)
     Reader.OnGoToStep(Follow.Picked)
     local AceEvent = LibStub and LibStub("AceEvent-3.0", true)
     if AceEvent then
@@ -363,6 +404,7 @@ events:SetScript("OnEvent", function(self, event)
         state.pending = false
         Follow.Sync()
         Follow.SyncTargets()
+        Follow.SyncUses()
         Follow.SyncExtras()
         return
     end

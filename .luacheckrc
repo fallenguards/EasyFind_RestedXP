@@ -18,6 +18,8 @@ read_globals = {
     "C_AddOns", "C_Map", "C_QuestLog", "C_Timer", "CreateVector2D", "IsAddOnLoaded", "GetLocale", "CreateFrame",
     "InCombatLockdown", "UnitIsDeadOrGhost", "hooksecurefunc",
     "UnitXP", "UnitXPMax", "UnitLevel", "BreakUpLargeNumbers", "issecretvalue",
+    "C_Item", "C_Spell", "C_SpellBook", "GetItemCount", "GetSpellInfo", "IsEquippedItem", "IsPlayerSpell", "IsSpellKnown",
+    "PlayerHasToy",
 }
 
 -- WoW callbacks have fixed signatures; unused args are normal

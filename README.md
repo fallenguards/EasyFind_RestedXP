@@ -13,7 +13,7 @@ For Classic Era, TBC Anniversary, Mists Classic, WoW Forever and retail. Require
 - Turn-by-turn GPS directions to every step, with the next few steps planned as one route: walks, lifts, flight paths, boats and zeppelins.
 - One arrow on screen: the GPS arrow and beacon point the way, and RestedXP's own arrow is hidden while the GPS has a route. Settings bring it back on your own routes or keep it always.
 - The Hearthstone and flight paths are used only where the guide says to hearth or fly.
-- A Target button under the arrow for each creature the step names.
+- A Target button under the arrow for each creature the step names, and a button for each item, spell or macro it says to use.
 - Death skips lead your ghost to the Spirit Healer.
 - Grind steps count your XP toward the step's goal.
 - Farming loops are drawn on the world map and the minimap.
@@ -24,4 +24,4 @@ For Classic Era, TBC Anniversary, Mists Classic, WoW Forever and retail. Require
 
 ## Settings
 
-In EasyFind's options, Extensions, RestedXP: Follow the guide, Hide RestedXP's arrow, its arrow on your own routes, the box under the arrow, the Spirit Healer on death skips, XP on grind steps, farm circuits on the map, and how many waypoints ahead the route goes on through.
+In EasyFind's options, Extensions, RestedXP: Follow the guide, Hide RestedXP's arrow (and its Active Targets and Active Items panels), its arrow on your own routes, the box under the arrow, the Spirit Healer on death skips, XP on grind steps, farm circuits on the map, and how many waypoints ahead the route goes on through.
