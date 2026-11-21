@@ -9,6 +9,7 @@ All notable changes to EasyFind: RestedXP Extension are documented in this file.
 ### Added
 - **The GPS follows your guide**: each waypoint and the next few after it as one route, by walks, lifts, flights and boats, moving on as the guide does, in a fight too; a route you start yourself holds until the guide moves on
 - **Travel the guide's way**: the Hearthstone and flight paths are used only on the steps where the guide says to hearth or fly
+- **Glide steps**: where the guide says to jump off and use Walk on Air, the GPS points straight at the waypoint, not down the walk around the mountain
 - **The step's creatures under the arrow**: each one a step names gets a Target button, in place of RestedXP's Active Targets panel
 - **The step's items under the arrow too**: an item, spell or macro a step says to use gets a button there, in place of RestedXP's Active Items panel
 - **One arrow**: RestedXP's arrow is hidden while the GPS has a route. A setting brings it back on your own routes, another keeps it always

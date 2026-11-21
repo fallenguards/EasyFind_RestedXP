@@ -75,6 +75,30 @@ function T.flightPaths_onlyWhereTheGuideSaysToFly()
     True(Last(ctx).opts.avoid.taxi and Last(ctx).opts.avoid.hearth, "landed: both left out again")
 end
 
+-- "Jump off the mountain and use Walk on Air to fly towards the waypoint"
+-- (Forever, 2026-11-21): the GPS planned the walk down and round, its
+-- arrow away from its beacon. A step that casts a glide is led straight.
+function T.aStepThatGlidesToItsSpot_isLedStraight()
+    local ctx = Harness.Load()
+    ctx.Point(3)
+    ctx.Login()
+    Eq(Last(ctx).dest[1].direct, nil, "a walk as ever")
+    local sent = #ctx.navigated
+    local step = ctx.guide.steps[3]
+    step.elements[#step.elements + 1] = { tag = "cast", ids = { 1259416 }, step = step }
+    ctx.Message("RXPGuidesV2_GuideStepsChanged")
+    ctx.Settle()
+    Eq(#ctx.navigated, sent + 1, "the same spot sent again")
+    Eq(Last(ctx).dest[1].direct, true, "straight this time")
+    Eq(Last(ctx).dest[2].direct, nil, "the stops after keep their walks")
+    local other = Harness.Load()
+    local walked = other.guide.steps[3]
+    walked.elements[#walked.elements + 1] = { tag = "cast", ids = { 8690 }, step = walked }
+    other.Point(3)
+    other.Login()
+    Eq(Last(other).dest[1].direct, nil, "another spell cast at a spot: walked to")
+end
+
 function T.eachNewWaypoint_isLedTo_once()
     local ctx = Harness.Load()
     ctx.Point(1)

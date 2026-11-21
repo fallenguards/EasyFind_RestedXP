@@ -490,6 +490,21 @@ function Reader.Ahead(e, n)
     return out
 end
 
+-- Spells a guide casts to reach a waypoint through the air. A step that
+-- says to cast one is led straight to its spot: the walk there goes down
+-- and round what the guide jumps off (Walk on Air, 2026-11-21).
+local GLIDES = { [1259416] = true }
+local function Glides(step)
+    for _, el in ipairs(Elements(step)) do
+        if el.tag == "cast" and type(el.ids) == "table" then
+            for _, id in ipairs(el.ids) do
+                if GLIDES[id] then return true end
+            end
+        end
+    end
+    return false
+end
+
 -- A spot as the GPS takes it: the step's creature, its words, its quest
 -- mark, from the step it speaks for.
 function Reader.Dest(e)
@@ -508,5 +523,6 @@ function Reader.Dest(e)
     -- hold: the GPS stays on it till the guide moves on (GPS 1.9.0).
     return { name = npc or text or sformat(ns.L["STEP_FMT"], index or 0), npcName = npc,
              mapID = e.zone, x = e.x / 100, y = e.y / 100, step = text,
-             questMark = mark, questID = quest, quietArrival = true, hold = true }
+             questMark = mark, questID = quest, quietArrival = true, hold = true,
+             direct = type(e.step) == "table" and Glides(e.step) or nil }
 end

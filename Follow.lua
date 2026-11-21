@@ -89,13 +89,13 @@ local function ArrowOut()
 end
 
 local function Plain(d)
-    return { name = d.name, mapID = d.mapID, x = d.x, y = d.y }
+    return { name = d.name, mapID = d.mapID, x = d.x, y = d.y, direct = d.direct }
 end
 
 local function SameList(a, b)
     if type(b) ~= "table" or #a ~= #b or a.hearth ~= b.hearth or a.fly ~= b.fly then return false end
     for i = 1, #a do
-        if not Same(a[i], b[i]) then return false end
+        if not Same(a[i], b[i]) or a[i].direct ~= b[i].direct then return false end
     end
     return true
 end
