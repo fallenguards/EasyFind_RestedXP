@@ -1,23 +1,25 @@
 # EasyFind: RestedXP Extension
 
-Your RestedXP guide, led by EasyFind's GPS. Wherever the guide sends you next, the GPS takes you there by the real way: around the mountains, up Thunder Bluff's lifts, down into Undercity, onto the flight path, the boat or the zeppelin. It moves on to the next waypoint as soon as the guide does, and the route runs on through the next few, so the time shown is for the whole stretch. When a step is to talk to someone, the Target button comes up as you get close.
+Turn-by-turn directions for your RestedXP guide. The EasyFind: GPS Navigation Extension leads you to each step with an arrow at your character, a beacon in the world and the route on your map and minimap. It knows the way a straight arrow does not: around mountains, up Thunder Bluff's lifts, down into Undercity, and onto the right flight path, boat or zeppelin.
 
-A route you start yourself holds until the guide moves on to its next waypoint; then the GPS follows the guide again.
+When the guide moves to its next step, so does the GPS. The route already covers the next few steps, so the time on it is for the whole stretch ahead. A route you set yourself stays until the guide moves on; then the GPS picks the guide back up.
 
-Your guides are found from EasyFind's search bar too: type a zone or level range to load a guide, or what a step says ("furlbrow", "okra") to jump the guide to it. Quests in EasyFind name the guide step that takes them, and items in your bags that a later step still needs say so, so you keep them.
+Your guides are in EasyFind's search bar too: type a zone or level range to load a guide, or what a step says ("furlbrow", "okra") to jump the guide to it. Quests in EasyFind name the guide step they belong to, and bag items a later step still needs are marked, so you know to keep them.
 
-For Classic Era, TBC Anniversary, Mists Classic, WoW Forever and retail. Requires EasyFind and RestedXP Guides; following needs the EasyFind: GPS Navigation Extension, 1.9.0 or later.
+For Classic Era, TBC Anniversary, Mists Classic, WoW Forever and retail. Requires EasyFind and RestedXP Guides; the directions come from the EasyFind: GPS Navigation Extension, version 1.9.0 or later.
 
 ## What it adds
 
-- The GPS follows the guide: each waypoint and the next few after it as one route, by walks, lifts, flights and boats.
-- The Hearthstone and flight paths only on the steps where the guide says to hearth or fly.
-- The creatures a step names under the arrow, a Target button each.
-- One arrow: RestedXP's own is hidden while the GPS has a route (a switch brings it back on your own routes, another keeps it always).
-- Death skips lead your ghost to the Spirit Healer, grind steps count your XP toward their goal, and a farm loop is drawn on the map.
-- Its guides as search results: a click loads one.
-- The loaded guide's steps as search results and as a list (type @rxp): a click jumps the guide there, the GPS button routes to the step.
-- Quest results name the guide step that takes them, with "Go to step" on their right-click menu.
+- Turn-by-turn GPS directions to every step, with the next few steps planned as one route: walks, lifts, flight paths, boats and zeppelins.
+- One arrow on screen: the GPS arrow and beacon point the way, and RestedXP's own arrow is hidden while the GPS has a route. Settings bring it back on your own routes or keep it always.
+- The Hearthstone and flight paths are used only where the guide says to hearth or fly.
+- A Target button under the arrow for each creature the step names.
+- Death skips lead your ghost to the Spirit Healer.
+- Grind steps count your XP toward the step's goal.
+- Farming loops are drawn on the world map and the minimap.
+- Find a guide from EasyFind's search by zone or level range, and click to load it.
+- Search the loaded guide's steps, or type @rxp to list them; click a step to jump the guide there, or its GPS button for a route to it.
+- Quests in EasyFind's search name the guide step they belong to, with "Go to step" on the right-click menu.
 - Bag items a later step still needs are marked.
 
 ## Settings
