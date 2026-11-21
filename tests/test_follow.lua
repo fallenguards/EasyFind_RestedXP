@@ -347,15 +347,27 @@ function T.noWaypointsAhead_orAnOlderGPS_oneDestination()
     Eq(Last(old).action, "navigate")
 end
 
-function T.inAFight_itWaitsForTheEnd()
+-- A step done in a fight: the GPS showed it until the fight ended, the
+-- guide already on the next (Forever, 2026-11-21). The route follows in
+-- the fight; only the target buttons wait for its end.
+function T.inAFight_theRouteFollowsTheGuide()
     local ctx = Harness.Load()
-    ctx.combat = true
     ctx.Point(1)
     ctx.Login()
-    Eq(#ctx.navigated, 0)
+    ctx.combat = true
+    ctx.Point(2)
+    ctx.Settle()
+    Eq(#ctx.navigated, 2, "led on in the fight")
+    Eq(Last(ctx).dest[1].name, "Verna Furlbrow")
+    Eq(ctx.arrow.alpha, 0, "its arrow still out")
     ctx.combat = false
     ctx.Fire("PLAYER_REGEN_ENABLED")
-    Eq(#ctx.navigated, 1)
+    Eq(#ctx.navigated, 2, "nothing sent twice at its end")
+    local login = Harness.Load()
+    login.combat = true
+    login.Point(1)
+    login.Login()
+    Eq(#login.navigated, 1, "logged in mid-fight: led at once")
 end
 
 function T.dead_theGPSsCorpseRunIsLeftAlone()

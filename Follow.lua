@@ -249,16 +249,13 @@ function Follow.SyncExtras()
     end
 end
 
--- One sync for a burst of changes, and none in a fight (the GPS's buttons
--- are secure): it waits for the fight's end.
+-- One sync for a burst of changes, in a fight too: the GPS holds its own
+-- secure buttons back there, and a route kept till the fight's end showed
+-- a step the guide had left (2026-11-21). The targets wait by themselves.
 function Follow.Schedule()
     if state.pending then return end
     state.pending = true
     C_Timer.After(SETTLE, function()
-        if InCombatLockdown() then
-            events:RegisterEvent("PLAYER_REGEN_ENABLED")
-            return
-        end
         state.pending = false
         Follow.Sync()
         Follow.SyncTargets()
