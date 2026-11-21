@@ -4,6 +4,13 @@ All notable changes to EasyFind: RestedXP Extension are documented in this file.
 
 ---
 
+## [1.0.1] - 2026-11-21
+
+### Fixed
+- **Death skips on Zephras Isle**: on a step that says to die and respawn, your ghost is led to the Spirit Healer the step names, not back to your corpse. Needs EasyFind: GPS Navigation Extension 1.9.1
+
+---
+
 ## [1.0.0] - 2026-11-21
 
 ### Added
