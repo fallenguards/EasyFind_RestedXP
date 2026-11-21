@@ -155,7 +155,9 @@ local function Settings(page, kit)
     follow:SetPoint("TOPLEFT", below, "BOTTOMLEFT", 0, -8)
     local arrow = kit.Checkbox(page, L["HIDE_ARROW"], Follow.HidesArrow, Follow.SetHidesArrow, L["HIDE_ARROW_TT"])
     arrow:SetPoint("TOPLEFT", follow, "BOTTOMLEFT", 0, -4)
-    local last = arrow
+    local own = kit.Checkbox(page, L["OWN_ARROW"], Follow.OwnArrow, Follow.SetOwnArrow, L["OWN_ARROW_TT"])
+    own:SetPoint("TOPLEFT", arrow, "BOTTOMLEFT", 0, -4)
+    local last = own
     -- The GPS's own setting, here too: hidden, it was missed on this page.
     if API.HasAction("gps", "arrowBox") then
         local box = kit.Checkbox(page, L["BOX"], function() return API.CallAction("gps", "arrowBox") ~= false end,

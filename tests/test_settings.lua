@@ -9,7 +9,7 @@ local T = {}
 local LOCALES = { "enUS", "deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW" }
 -- The keys a switch's label reads, and the room its row has: about 28
 -- Latin letters (a cut showed at 28), a CJK or Hangul character two.
-local SWITCHES = { "FOLLOW", "HIDE_ARROW", "BOX", "DEATH_SKIP", "GRIND_XP", "CIRCUITS" }
+local SWITCHES = { "FOLLOW", "HIDE_ARROW", "OWN_ARROW", "BOX", "DEATH_SKIP", "GRIND_XP", "CIRCUITS" }
 local ROOM = 28
 
 -- The page built with a stand-in kit: its rows in order.
@@ -50,6 +50,25 @@ function T.theGPSArrowsBox_isSwitchedOnThisPage()
     Eq(box.get(), false, "and read back")
     box.set(true)
     Eq(box.get(), true)
+end
+
+-- Its arrow on a route of the player's own: a switch under the hide one,
+-- off until set (asked for, 2026-11-20).
+function T.itsArrowOnTheirOwnRoutes_isSwitchedOnThisPage()
+    local ctx = Harness.Load()
+    local rows = Page(ctx)
+    local own = Find(rows, "Show it on your own routes")
+    True(own ~= nil, "the switch")
+    True(own.tooltip ~= nil, "saying both arrows show")
+    Eq(own.get(), false, "off until set")
+    for i, r in ipairs(rows) do
+        if r == own then Eq(rows[i - 1].label, "Hide RestedXP's arrow", "under the switch it changes") end
+    end
+    own.set(true)
+    Eq(own.get(), true)
+    Eq(ctx.env.EasyFindRestedXPDB.ownArrow, true, "kept")
+    own.set(false)
+    Eq(ctx.env.EasyFindRestedXPDB.ownArrow, nil, "off leaves nothing saved")
 end
 
 function T.withoutTheGPSsBoxAction_noSwitch()

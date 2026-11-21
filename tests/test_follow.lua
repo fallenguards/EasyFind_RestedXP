@@ -146,6 +146,25 @@ function T.aRouteOfThePlayersOwn_showsOneArrow()
     Eq(off.arrow.alpha, 1, "following off: its arrow is never touched")
 end
 
+-- Kept there by its switch: both on a route of the player's own, the GPS
+-- arrow alone on the guide's; the switch acts at once.
+function T.itsArrowKeptOnTheirOwnRoutes_showsBothThere()
+    local ctx = Harness.Load()
+    ctx.ns.Follow.SetOwnArrow(true)
+    ctx.Point(1)
+    ctx.Login()
+    Eq(ctx.arrow.alpha, 0, "the guide's route: the GPS arrow alone")
+    ctx.PlayerRoute("Booty Bay")
+    Eq(ctx.arrow.alpha, 1, "their route: its arrow too")
+    ctx.ns.Follow.SetOwnArrow(false)
+    Eq(ctx.arrow.alpha, 0, "switched off on their route: out at once")
+    ctx.ns.Follow.SetOwnArrow(true)
+    Eq(ctx.arrow.alpha, 1, "and back")
+    ctx.Point(2)
+    ctx.Settle()
+    Eq(ctx.arrow.alpha, 0, "the guide leads again: the GPS arrow alone")
+end
+
 -- Started while the arrow showed nothing: its first waypoint takes over.
 function T.aRouteOfThePlayersOwn_withNoWaypointShown()
     local ctx = Harness.Load()
