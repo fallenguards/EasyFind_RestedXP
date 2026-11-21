@@ -95,7 +95,7 @@ function T.aRouteOfThePlayersOwn_holdsUntilTheArrowMovesOn()
     ctx.Point(1)
     ctx.Login()
     ctx.PlayerRoute("Booty Bay")
-    Eq(ctx.arrow.alpha, 1, "their route: its arrow back")
+    Eq(ctx.arrow.alpha, 0, "their route: the GPS arrow alone")
     ctx.Point(1)
     ctx.Settle()
     Eq(#ctx.navigated, 1, "the same waypoint: their route holds")
@@ -115,6 +115,35 @@ function T.aRouteOfThePlayersOwnEnded_theGuidesAgain()
     ctx.Settle()
     Eq(#ctx.navigated, 2, "their route over: the same waypoint led again")
     Eq(Last(ctx).dest[1].name, "Farmer Furlbrow")
+end
+
+-- Both arrows showed on a route of the player's own, each its own way
+-- (Forever, 2026-11-20): one arrow while the GPS has any route, RestedXP's
+-- back once it has none.
+function T.aRouteOfThePlayersOwn_showsOneArrow()
+    local ctx = Harness.Load()
+    ctx.Point(1)
+    ctx.Login()
+    ctx.PlayerRoute("Booty Bay")
+    ctx.Point(1)
+    ctx.Settle()
+    Eq(ctx.arrow.alpha, 0, "held on the same waypoint: still the GPS arrow alone")
+    ctx.arrow:SetAlpha(1)
+    Eq(ctx.arrow.alpha, 0, "its own drawing does not bring it back")
+    ctx.holdStart = true
+    ctx.ClearRoute()
+    Eq(ctx.arrow.alpha, 1, "no route: its arrow its own")
+    local kept = Harness.Load()
+    kept.gps.dest = { name = "Booty Bay", mapID = 1434, x = 0.4, y = 0.7 }
+    kept.Point(1)
+    kept.Login()
+    Eq(kept.arrow.alpha, 0, "their route kept over a reload: the same")
+    local off = Harness.Load()
+    off.ns.Follow.SetOn(false)
+    off.Point(1)
+    off.Login()
+    off.PlayerRoute("Booty Bay")
+    Eq(off.arrow.alpha, 1, "following off: its arrow is never touched")
 end
 
 -- Started while the arrow showed nothing: its first waypoint takes over.

@@ -37,7 +37,9 @@ end
 Follow.AHEAD_MAX = AHEAD_MAX
 
 -- force: send the guide's route even when it is the one sent last.
-local state = { leading = false, yielded = false, faded = false, pending = false, panelHidden = false, force = false }
+-- routed: the GPS has a route up, the guide's or the player's own.
+local state = { leading = false, yielded = false, routed = false, faded = false, pending = false, panelHidden = false,
+                force = false }
 Follow._state = state
 
 local function Same(a, b)
@@ -54,8 +56,9 @@ local function Ours(dest)
     return false
 end
 
--- RestedXP's arrow faded while the GPS leads: its own drawing sets the
--- alpha every frame, so each set is answered with 0.
+-- RestedXP's arrow faded while the GPS has a route, the player's own too
+-- (two arrows at once, 2026-11-20): its own drawing sets the alpha every
+-- frame, so each set is answered with 0.
 local hooked, busy
 local function KeepFaded(frame, alpha)
     if busy or not state.faded or not alpha or alpha <= 0 then return end
@@ -105,7 +108,7 @@ function Follow.Sync(force)
             state.leading, char.sent = false, nil
             API.CallAction("gps", "clear")
         end
-        return Fade(false)
+        return Fade(state.routed)
     end
     local key = Reader.Key(e)
     -- A route of the player's own holds while the arrow stays on the
@@ -113,7 +116,7 @@ function Follow.Sync(force)
     -- one it is on now.
     if state.yielded then
         if char.heldAt == nil then char.heldAt = key end
-        if key == char.heldAt then return Fade(false) end
+        if key == char.heldAt then return Fade(state.routed) end
         state.yielded, char.heldAt = false, nil
     end
     local list = { Reader.Dest(e) }
@@ -126,7 +129,7 @@ function Follow.Sync(force)
     local hearth, fly = Reader.Hearth() or nil, Reader.Fly() or nil
     local plain = { hearth = hearth, fly = fly }
     for i = 1, #list do plain[i] = Plain(list[i]) end
-    if not force and SameList(plain, char.sent) then return Fade(state.leading) end
+    if not force and SameList(plain, char.sent) then return Fade(state.routed) end
     -- Kept before the call: its route can start inside it.
     local before = char.sent
     char.sent = plain
@@ -279,7 +282,7 @@ end
 
 function Follow.SetHidesArrow(on)
     if on then DB().keepArrow = nil else DB().keepArrow = true end
-    Fade(state.leading)
+    Fade(state.routed)
     Follow.SyncTargets()
 end
 
@@ -291,13 +294,13 @@ end
 -- The player's own route: it holds until the guide's arrow moves on.
 API.On("gps", "routeStarted", function(dest)
     local mine = Ours(dest)
-    state.leading, state.arrived = mine, false
+    state.leading, state.arrived, state.routed = mine, false, true
     if not mine then
         state.yielded = true
         local e = Reader.Target()
         Char().heldAt = e and Reader.Key(e) or false
     end
-    Fade(mine)
+    Fade(true)
     Follow.SyncExtras()
 end)
 
@@ -309,7 +312,7 @@ API.On("gps", "arrived", function() state.arrived = true end)
 -- 2026-11-18); the guide's arrived at, not again for that waypoint.
 API.On("gps", "routeCleared", function()
     local theirs, arrived = state.yielded, state.arrived
-    state.leading, state.yielded, state.arrived = false, false, false
+    state.leading, state.yielded, state.arrived, state.routed = false, false, false, false
     Fade(false)
     Follow.SyncExtras()
     if theirs or not arrived then
@@ -369,7 +372,8 @@ events:SetScript("OnEvent", function(self, event)
             state.yielded = not state.leading
             if state.leading then state.force = true end
         end
-        Fade(state.leading)
+        state.routed = dest ~= nil
+        Fade(state.routed)
     elseif not (state.leading or state.yielded) then
         -- Back from the dead: the corpse run ended the guide's route.
         state.force = true
