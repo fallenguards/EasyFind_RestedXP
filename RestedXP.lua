@@ -165,6 +165,15 @@ local function Settings(page, kit)
         box:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
         last = box
     end
+    -- The GPS's look for what a guide puts under its arrow, switched here.
+    for _, x in ipairs({ { action = "useIcons", label = "USE_ICONS" }, { action = "targetPairs", label = "TARGET_PAIRS" } }) do
+        if API.HasAction("gps", x.action) then
+            local row = kit.Checkbox(page, L[x.label], function() return API.CallAction("gps", x.action) ~= false end,
+                function(on) API.CallAction("gps", x.action, on) end, L[x.label .. "_TT"])
+            row:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -4)
+            last = row
+        end
+    end
     -- What the guide's steps lay over the GPS, each where the GPS takes it.
     for _, x in ipairs({ { key = "deathSkip", action = "deathSkip", label = "DEATH_SKIP" },
                          { key = "grindXP", action = "setStatus", label = "GRIND_XP" },

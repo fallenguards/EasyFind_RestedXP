@@ -94,6 +94,7 @@ function Harness.Load(opts)
         RefreshRowDecorations = function() ctx.repaints = ctx.repaints + 1 end,
         HasAction = function(id, name)
             if id ~= "gps" or opts.gps == false then return false end
+            if (name == "useIcons" or name == "targetPairs") and opts.look == false then return false end
             return name ~= "navigateTrip" or opts.trip ~= false
         end,
         CallAction = function(_, name, a, b)
@@ -114,6 +115,12 @@ function Harness.Load(opts)
             if name == "arrowBox" then
                 if a == nil then return ctx.box ~= false end
                 ctx.box = a
+            end
+            -- The look of the buttons under the arrow, read and set the same way.
+            if name == "useIcons" or name == "targetPairs" then
+                ctx.look = ctx.look or {}
+                if a == nil then return ctx.look[name] ~= false end
+                ctx.look[name] = a
             end
             if name == "clear" then
                 ctx.cleared = (ctx.cleared or 0) + 1
