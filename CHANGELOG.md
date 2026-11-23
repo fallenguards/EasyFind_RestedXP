@@ -4,6 +4,16 @@ All notable changes to EasyFind: RestedXP Extension are documented in this file.
 
 ---
 
+## [1.1.0] - 2026-11-22
+
+### Added
+- **Items to use as icons**: the items, spells and macros a step says to use sit under the arrow as icons in one box, each with its tooltip and cooldown. Items to use as icons, in this extension's settings, puts them back as named buttons
+- **Two targets to a row**: the Target buttons pair up where two fit side by side. Two targets to a row, in the settings, gives each its own row again
+
+Both need EasyFind: GPS Navigation Extension 1.10.0
+
+---
+
 ## [1.0.1] - 2026-11-21
 
 ### Fixed
