@@ -3,7 +3,7 @@
 ## Notes: EasyFind's GPS follows your RestedXP guide waypoint by waypoint, and its guides, steps and quests are found from EasyFind's search bar. Requires EasyFind and RestedXP Guides.
 ## Author: justawower
 ## X-Curse-Project-ID: 1820409
-## Version: 1.1.0
+## Version: 1.1.1
 ## IconTexture: Interface\AddOns\EasyFind\textures\SpyglassMinimap
 ## Group: EasyFind
 ## Category: Quests

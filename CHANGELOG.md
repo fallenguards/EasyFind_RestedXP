@@ -4,6 +4,13 @@ All notable changes to EasyFind: RestedXP Extension are documented in this file.
 
 ---
 
+## [1.1.1] - 2026-11-23
+
+### Changed
+- Marked up to date for WoW 12.1.7, so the game no longer lists it as out of date there
+
+---
+
 ## [1.1.0] - 2026-11-22
 
 ### Added
