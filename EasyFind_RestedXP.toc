@@ -1,4 +1,4 @@
-## Interface: 50504, 11509, 16001, 20506, 120105, 120100, 120007
+## Interface: 50504, 11509, 16001, 20506, 120107, 120105, 120100, 120007
 ## Title: EasyFind [RestedXP]
 ## Notes: EasyFind's GPS follows your RestedXP guide waypoint by waypoint, and its guides, steps and quests are found from EasyFind's search bar. Requires EasyFind and RestedXP Guides.
 ## Author: justawower
